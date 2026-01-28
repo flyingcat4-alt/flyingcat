@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 导航 | LLM Index 风格</title>
+  <style>
+    :root{
+      --bg:#0b1020; --fg:#e8ecff; --muted:rgba(232,236,255,.72);
+      --panel:rgba(255,255,255,.05); --panel2:rgba(255,255,255,.08);
+      --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.25);
+      --chip:rgba(255,255,255,.04); --accent:#4f7cff;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb; --fg:#121528; --muted:rgba(18,21,40,.68);
+      --panel:rgba(18,21,40,.05); --panel2:rgba(18,21,40,.08);
+      --border:rgba(18,21,40,.12); --border2:rgba(18,21,40,.20);
+      --chip:rgba(18,21,40,.04); --accent:#2d5bff;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--fg);}
+    a{color:inherit}
+
+    .app{max-width:1280px; margin:0 auto; padding:18px;}
+    .header{
+      display:flex; gap:12px; align-items:flex-end; justify-content:space-between;
+      padding:10px 6px 18px;
+    }
+    .title h1{margin:0; font-size:26px; letter-spacing:.2px;}
+    .title .sub{margin-top:8px; color:var(--muted); font-size:13px; line-height:1.45}
+    .actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+    .btn{
+      border:1px solid var(--border); background:var(--panel); color:var(--fg);
+      padding:10px 12px; border-radius:12px; cursor:pointer; font-size:12px;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn:hover{border-color:var(--border2); background:var(--panel2);}
+    .btn.primary{border-color:var(--accent); background:rgba(79,124,255,.12);}
+    .btn.primary:hover{background:rgba(79,124,255,.18);}
+
+    .layout{display:grid; grid-template-columns: 320px 1fr; gap:14px;}
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr;}
+      .sidebar{order:2;}
+    }
+
+    .sidebar, .main{
+      border:1px solid var(--border);
+      background:var(--panel);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+    }
+    .sidebar{padding:14px;}
+    .main{padding:14px;}
+
+    .section{padding:10px 8px;}
+    .section h3{margin:0 0 10px; font-size:13px; color:var(--muted); font-weight:650; text-transform:none;}
+    .row{display:flex; gap:10px; flex-wrap:wrap;}
+    .pill{
+      user-select:none;
+      border:1px solid var(--border);
+      background:var(--chip);
+      color:var(--fg);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .pill:hover{border-color:var(--border2); background:var(--panel2);}
+    .pill.active{background:var(--accent); border-color:var(--accent); color:white;}
+
+    .field{
+      width:100%;
+      border:1px solid var(--border);
+      background:var(--chip);
+      color:var(--fg);
+      padding:11px 12px;
+      border-radius:14px;
+      outline:none;
+      font-size:13px;
+    }
+    .field:focus{border-color:var(--border2); background:var(--panel2);}
+
+    .topbar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      padding:8px 8px 14px;
+      border-bottom:1px solid var(--border);
+      margin-bottom:14px;
+    }
+    .topbar .left{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .topbar .right{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+
+    .meta{color:var(--muted); font-size:12px; padding:0 8px 12px;}
+    .grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:12px; padding:0 8px 8px;}
+    .card{
+      position:relative;
+      border:1px solid var(--border);
+      background:var(--chip);
+      border-radius:18px;
+      padding:14px;
+      text-decoration:none;
+      display:block;
+    }
+    .card:hover{border-color:var(--border2); background:var(--panel2);}
+    .card .name{font-weight:750; letter-spacing:.2px;}
+    .card .desc{margin-top:6px; color:var(--muted); font-size:12px; line-height:1.35; min-height:34px;}
+    .badges{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;}
+    .badge{
+      border:1px solid var(--border);
+      background:var(--panel);
+      color:var(--muted);
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:11px;
+      display:inline-flex; gap:6px; align-items:center;
+    }
+    .star{
+      position:absolute; top:10px; right:10px;
+      width:34px; height:34px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+    }
+    .star:hover{border-color:var(--border2); background:var(--panel2);}
+    .star.on{border-color:var(--accent); background:rgba(79,124,255,.15);}
+
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background:rgba(0,0,0,.65); color:white;
+      padding:10px 12px; border-radius:999px; font-size:12px;
+      border:1px solid rgba(255,255,255,.18);
+      opacity:0; pointer-events:none; transition:opacity .18s ease;
+      max-width:90vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    [data-theme="light"] .toast{background:rgba(18,21,40,.85);}
+
+    .footer{color:var(--muted); font-size:12px; padding:14px 8px 4px; line-height:1.6}
+    code.kbd{padding:2px 6px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--fg)}
+  </style>
+</head>
+
+<body data-theme="dark">
+  <div class="app">
+    <div class="header">
+      <div class="title">
+        <h1>AI 导航</h1>
+        <div class="sub">
+          类 llmindex 风格：左侧筛选 + 右侧卡片（支持搜索、重置筛选、收藏、访问排序）<br/>
+          快捷键：<code class="kbd">/</code> 聚焦搜索，<code class="kbd">Esc</code> 清空。
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnTheme" class="btn">🌓 主题</button>
+        <button id="btnOnlyStar" class="btn">⭐ 只看收藏：关</button>
+        <button id="btnSort" class="btn primary">⇅ 排序：默认</button>
+        <button id="btnReset" class="btn">♻️ 重置筛选</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="section">
+          <h3>搜索</h3>
+          <input id="q" class="field" placeholder="输入关键词：chat / 图片 / 编程 / 国内 / 大厂…" />
+        </div>
+
+        <div class="section">
+          <h3>分类（Tag）</h3>
+          <div id="tagRow" class="row"></div>
+        </div>
+
+        <div class="section">
+          <h3>地区（Region）</h3>
+          <div id="regionRow" class="row"></div>
+        </div>
+
+        <div class="section">
+          <h3>厂商（Company）</h3>
+          <div id="companyRow" class="row"></div>
+        </div>
+
+        <div class="footer">
+          说明：收藏/访问次数保存在本地浏览器，不上传。<br/>
+          提示：右键卡片可复制链接。
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="left">
+            <div class="meta">当前筛选：<b id="metaFilter">全部</b>　结果：<b id="metaCount">0</b></div>
+          </div>
+          <div class="right">
+            <div class="meta">点击 ⭐ 收藏；支持按访问排序。</div>
+          </div>
+        </div>
+
+        <div id="grid" class="grid"></div>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+  // ===== 数据：你继续往这里加就行（name/url/desc/tag/region/company）=====
+  const data = [
+    // 综合/搜索
+    {name:"ChatGPT", url:"https://chatgpt.com", desc:"通用对话/写作/代码", tag:"综合", region:"国外", company:"OpenAI"},
+    {name:"Claude", url:"https://claude.ai", desc:"长文本/文档推理很强", tag:"综合", region:"国外", company:"Anthropic"},
+    {name:"Gemini", url:"https://gemini.google.com", desc:"Google 系 AI 助手", tag:"综合", region:"国外", company:"Google"},
+    {name:"Microsoft Copilot", url:"https://copilot.microsoft.com", desc:"微软 Copilot 助手入口", tag:"综合", region:"国外", company:"Microsoft"},
+    {name:"Perplexity", url:"https://www.perplexity.ai", desc:"带引用的搜索问答", tag:"搜索", region:"国外", company:"Perplexity"},
+    {name:"You.com", url:"https://you.com", desc:"AI 搜索与聊天", tag:"搜索", region:"国外", company:"You"},
+    {name:"Phind", url:"https://www.phind.com", desc:"面向开发者的 AI 搜索", tag:"编程", region:"国外", company:"Phind"},
+    {name:"Poe", url:"https://poe.com", desc:"多模型聚合入口", tag:"聚合", region:"国外", company:"Quora"},
+
+    // 图像/视频/音频
+    {name:"Midjourney", url:"https://www.midjourney.com", desc:"图像生成（MJ）", tag:"图像", region:"国外", company:"Midjourney"},
+    {name:"Ideogram", url:"https://ideogram.ai", desc:"文字排版图像很强", tag:"图像", region:"国外", company:"Ideogram"},
+    {name:"Adobe Firefly", url:"https://firefly.adobe.com", desc:"生成式填充/图像创作", tag:"图像", region:"国外", company:"Adobe"},
+    {name:"Runway", url:"https://runwayml.com", desc:"视频生成/视频编辑", tag:"视频", region:"国外", company:"Runway"},
+    {name:"Pika", url:"https://pika.art", desc:"视频生成", tag:"视频", region:"国外", company:"Pika"},
+    {name:"ElevenLabs", url:"https://elevenlabs.io", desc:"语音合成/配音", tag:"音频", region:"国外", company:"ElevenLabs"},
+    {name:"Suno", url:"https://suno.com", desc:"AI 作曲/歌曲生成", tag:"音频", region:"国外", company:"Suno"},
+
+    // 开发/API/研究
+    {name:"Hugging Face", url:"https://huggingface.co", desc:"模型/数据集/Spaces", tag:"开发", region:"国外", company:"开源"},
+    {name:"Replicate", url:"https://replicate.com", desc:"在线运行开源模型", tag:"开发", region:"国外", company:"Replicate"},
+    {name:"OpenRouter", url:"https://openrouter.ai", desc:"多模型 API 聚合", tag:"API", region:"国外", company:"OpenRouter"},
+    {name:"Together AI", url:"https://www.together.ai", desc:"开源模型推理/训练", tag:"API", region:"国外", company:"Together"},
+    {name:"Papers with Code", url:"https://paperswithcode.com", desc:"论文 + 代码索引", tag:"研究", region:"国外", company:"Meta"},
+
+    // 国内大厂/平台
+    {name:"通义千问", url:"https://tongyi.aliyun.com", desc:"阿里通义千问助手", tag:"综合", region:"国内", company:"阿里"},
+    {name:"文心一言", url:"https://yiyan.baidu.com", desc:"百度文心一言", tag:"综合", region:"国内", company:"百度"},
+    {name:"Kimi", url:"https://kimi.moonshot.cn", desc:"长文本/文件阅读强", tag:"综合", region:"国内", company:"月之暗面"},
+    {name:"智谱清言", url:"https://chatglm.cn", desc:"智谱 ChatGLM 官方入口", tag:"综合", region:"国内", company:"智谱"},
+    {name:"讯飞星火", url:"https://xinghuo.xfyun.cn", desc:"科大讯飞星火", tag:"综合", region:"国内", company:"讯飞"},
+    {name:"火山方舟", url:"https://www.volcengine.com/product/ark", desc:"字节模型/应用平台", tag:"API", region:"国内", company:"字节"},
+    {name:"百度千帆", url:"https://qianfan.cloud.baidu.com", desc:"百度大模型平台", tag:"API", region:"国内", company:"百度"},
+    {name:"阿里云百炼", url:"https://bailian.console.aliyun.com", desc:"模型与应用平台", tag:"API", region:"国内", company:"阿里"},
+
+    // 导航/发现
+    {name:"Futurepedia", url:"https://www.futurepedia.io", desc:"国外 AI 工具导航库", tag:"导航", region:"国外", company:"导航"},
+    {name:"There’s An AI For That", url:"https://theresanaiforthat.com", desc:"国外 AI 工具导航", tag:"导航", region:"国外", company:"导航"},
+    {name:"Product Hunt", url:"https://www.producthunt.com", desc:"新产品/AI 工具发现", tag:"导航", region:"国外", company:"导航"},
+
+    // 办公/翻译
+    {name:"DeepL", url:"https://www.deepl.com/translator", desc:"高质量翻译", tag:"翻译", region:"国外", company:"DeepL"},
+    {name:"Notion", url:"https://www.notion.so", desc:"知识库/文档 + AI", tag:"办公", region:"国外", company:"Notion"},
+  ];
+
+  // ===== 本地状态 =====
+  const LS_STAR="ai_nav_star_v2";
+  const LS_HITS="ai_nav_hits_v2";
+  const LS_THEME="ai_nav_theme_v2";
+
+  const starSet = new Set(JSON.parse(localStorage.getItem(LS_STAR) || "[]"));
+  const hits = JSON.parse(localStorage.getItem(LS_HITS) || "{}");
+
+  const tagRow=document.getElementById('tagRow');
+  const regionRow=document.getElementById('regionRow');
+  const companyRow=document.getElementById('companyRow');
+  const grid=document.getElementById('grid');
+  const q=document.getElementById('q');
+  const metaFilter=document.getElementById('metaFilter');
+  const metaCount=document.getElementById('metaCount');
+  const toast=document.getElementById('toast');
+
+  const btnTheme=document.getElementById('btnTheme');
+  const btnOnlyStar=document.getElementById('btnOnlyStar');
+  const btnSort=document.getElementById('btnSort');
+  const btnReset=document.getElementById('btnReset');
+
+  let onlyStar=false;
+  let sortMode="default"; // default | hits | alpha
+  let selTag="全部";
+  let selRegion="全部";
+  let selCompany="全部";
+
+  function keyOf(x){ return (x.url || x.name).trim(); }
+  function uniq(arr){ return [...new Set(arr)].filter(Boolean); }
+
+  function toastMsg(msg){
+    toast.textContent=msg;
+    toast.style.opacity="1";
+    clearTimeout(toastMsg.t);
+    toastMsg.t=setTimeout(()=>toast.style.opacity="0", 1200);
+  }
+
+  function setTheme(theme){
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem(LS_THEME, theme);
+    btnTheme.textContent = theme==="light" ? "🌙 主题" : "🌓 主题";
+  }
+  btnTheme.onclick=()=> setTheme((document.body.getAttribute("data-theme")||"dark")==="dark" ? "light" : "dark");
+
+  btnOnlyStar.onclick=()=>{
+    onlyStar=!onlyStar;
+    btnOnlyStar.textContent = onlyStar ? "⭐ 只看收藏：开" : "⭐ 只看收藏：关";
+    apply();
+  };
+
+  btnSort.onclick=()=>{
+    if(sortMode==="default"){ sortMode="hits"; btnSort.textContent="⇅ 排序：按访问"; toastMsg("按访问次数排序"); }
+    else if(sortMode==="hits"){ sortMode="alpha"; btnSort.textContent="⇅ 排序：按字母"; toastMsg("按字母排序"); }
+    else { sortMode="default"; btnSort.textContent="⇅ 排序：默认"; toastMsg("默认排序"); }
+    apply();
+  };
+
+  btnReset.onclick=()=>{
+    selTag="全部"; selRegion="全部"; selCompany="全部";
+    onlyStar=false; sortMode="default";
+    q.value="";
+    btnOnlyStar.textContent="⭐ 只看收藏：关";
+    btnSort.textContent="⇅ 排序：默认";
+    renderFilters();
+    apply();
+    toastMsg("已重置筛选");
+  };
+
+  function pillHtml(text, active){
+    return `<div class="pill ${active?'active':''}" data-v="${encodeURIComponent(text)}">${text}</div>`;
+  }
+
+  function bindPills(container, onPick){
+    container.querySelectorAll('.pill').forEach(p=>{
+      p.onclick=()=> onPick(decodeURIComponent(p.dataset.v));
+    });
+  }
+
+  function renderFilters(){
+    const tags = ["全部", ...uniq(data.map(x=>x.tag)).sort()];
+    const regions = ["全部", ...uniq(data.map(x=>x.region)).sort()];
+    const companies = ["全部", ...uniq(data.map(x=>x.company)).sort()];
+
+    tagRow.innerHTML = tags.map(t=>pillHtml(t, t===selTag)).join('');
+    regionRow.innerHTML = regions.map(r=>pillHtml(r, r===selRegion)).join('');
+    companyRow.innerHTML = companies.map(c=>pillHtml(c, c===selCompany)).join('');
+
+    bindPills(tagRow, (v)=>{ selTag=v; renderFilters(); apply(); });
+    bindPills(regionRow, (v)=>{ selRegion=v; renderFilters(); apply(); });
+    bindPills(companyRow, (v)=>{ selCompany=v; renderFilters(); apply(); });
+  }
+
+  function match(x){
+    const s=(q.value||"").toLowerCase().trim();
+    const hay = `${x.name} ${x.desc||""} ${x.tag||""} ${x.region||""} ${x.company||""}`.toLowerCase();
+    const hitSearch = !s || hay.includes(s);
+    const hitTag = selTag==="全部" || x.tag===selTag;
+    const hitRegion = selRegion==="全部" || x.region===selRegion;
+    const hitCompany = selCompany==="全部" || x.company===selCompany;
+    const hitStar = !onlyStar || starSet.has(keyOf(x));
+    return hitSearch && hitTag && hitRegion && hitCompany && hitStar;
+  }
+
+  function card(x){
+    const k=keyOf(x);
+    const isStar=starSet.has(k);
+    const h=hits[k]||0;
+    return `
+      <a class="card" href="${x.url}" target="_blank" rel="noreferrer" data-k="${encodeURIComponent(k)}">
+        <div class="star ${isStar?'on':''}" title="收藏/取消收藏" data-star="${encodeURIComponent(k)}">${isStar?'★':'☆'}</div>
+        <div class="name">${x.name}</div>
+        <div class="desc">${x.desc||""}</div>
+        <div class="badges">
+          <span class="badge">🏷 ${x.tag||"-"}</span>
+          <span class="badge">🌍 ${x.region||"-"}</span>
+          <span class="badge">🏢 ${x.company||"-"}</span>
+          <span class="badge">👁 ${h}</span>
+        </div>
+      </a>
+    `;
+  }
+
+  function apply(){
+    let list=data.filter(match);
+
+    if(sortMode==="hits"){
+      list.sort((a,b)=>(hits[keyOf(b)]||0)-(hits[keyOf(a)]||0));
+    }else if(sortMode==="alpha"){
+      list.sort((a,b)=>a.name.localeCompare(b.name,'zh-Hans-CN'));
+    }
+
+    metaFilter.textContent = `Tag:${selTag} / 地区:${selRegion} / 厂商:${selCompany}${onlyStar?' / 收藏':''}`;
+    metaCount.textContent = String(list.length);
+
+    grid.innerHTML = list.map(card).join('');
+
+    // star toggle
+    grid.querySelectorAll('[data-star]').forEach(el=>{
+      el.addEventListener('click',(e)=>{
+        e.preventDefault(); e.stopPropagation();
+        const k=decodeURIComponent(el.dataset.star);
+        if(starSet.has(k)){ starSet.delete(k); toastMsg("已取消收藏"); }
+        else { starSet.add(k); toastMsg("已收藏"); }
+        localStorage.setItem(LS_STAR, JSON.stringify([...starSet]));
+        apply();
+      });
+    });
+
+    // hit count + right click copy
+    grid.querySelectorAll('a.card').forEach(a=>{
+      a.addEventListener('click',()=>{
+        const k=decodeURIComponent(a.dataset.k);
+        hits[k]=(hits[k]||0)+1;
+        localStorage.setItem(LS_HITS, JSON.stringify(hits));
+      });
+      a.addEventListener('contextmenu', async (e)=>{
+        e.preventDefault();
+        try{ await navigator.clipboard.writeText(a.href); toastMsg("已复制链接"); }
+        catch{ toastMsg("复制失败（请手动复制）"); }
+      });
+    });
+  }
+
+  // 快捷键
+  window.addEventListener('keydown',(e)=>{
+    if(e.key==="/" && document.activeElement!==q){ e.preventDefault(); q.focus(); }
+    if(e.key==="Escape"){ q.value=""; q.blur(); apply(); }
+  });
+  q.addEventListener('input', apply);
+
+  // init
+  setTheme(localStorage.getItem(LS_THEME)||"dark");
+  renderFilters();
+  apply();
+</script>
+</body>
+</html>

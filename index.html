@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 导航</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:#0b1020; color:#e8ecff;}
+    header{padding:28px 18px; max-width:980px; margin:0 auto;}
+    h1{margin:0 0 8px; font-size:22px;}
+    .sub{opacity:.8; font-size:13px}
+    .wrap{max-width:980px; margin:0 auto; padding:0 18px 28px;}
+    .search{display:flex; gap:10px; margin:14px 0 18px;}
+    input{flex:1; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#e8ecff;}
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
+    a.card{display:block; padding:14px; border-radius:16px; text-decoration:none; color:inherit;
+      border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05);}
+    a.card:hover{border-color:rgba(255,255,255,.28); background:rgba(255,255,255,.08);}
+    .name{font-weight:650;}
+    .desc{opacity:.8; font-size:12px; margin-top:6px; line-height:1.35;}
+    .tag{display:inline-block; font-size:11px; opacity:.85; margin-top:10px; padding:4px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04);}
+    footer{opacity:.65; font-size:12px; padding:18px;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI 导航</h1>
+    <div class="sub">常用 AI 工具快捷入口（支持搜索过滤）</div>
+  </header>
+
+  <div class="wrap">
+    <div class="search">
+      <input id="q" placeholder="搜索：比如 chat / 图片 / 编程 / 翻译…" />
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <footer>提示：把这个页面加入浏览器书签 / 设为首页更方便。</footer>
+  </div>
+
+<script>
+  const items = [
+    {name:"ChatGPT", url:"https://chatgpt.com", desc:"通用对话/写作/代码", tag:"综合"},
+    {name:"Claude", url:"https://claude.ai", desc:"长文本/文档推理很强", tag:"综合"},
+    {name:"Gemini", url:"https://gemini.google.com", desc:"Google 系 AI 助手", tag:"综合"},
+    {name:"Perplexity", url:"https://www.perplexity.ai", desc:"带引用的搜索问答", tag:"搜索"},
+    {name:"Poe", url:"https://poe.com", desc:"多模型聚合入口", tag:"聚合"},
+    {name:"Midjourney", url:"https://www.midjourney.com", desc:"图像生成", tag:"图像"},
+    {name:"Stable Diffusion Web", url:"https://stability.ai", desc:"图像生成生态", tag:"图像"},
+    {name:"Hugging Face", url:"https://huggingface.co", desc:"模型/数据集/Spaces", tag:"开发"},
+    {name:"OpenRouter", url:"https://openrouter.ai", desc:"多模型 API 聚合", tag:"API"},
+  ];
+
+  const grid = document.getElementById('grid');
+  const q = document.getElementById('q');
+
+  function render(list){
+    grid.innerHTML = list.map(x => `
+      <a class="card" href="${x.url}" target="_blank" rel="noreferrer">
+        <div class="name">${x.name}</div>
+        <div class="desc">${x.desc || ""}</div>
+        <div class="tag">${x.tag || "工具"}</div>
+      </a>
+    `).join('');
+  }
+  function filter(){
+    const s = (q.value || "").toLowerCase().trim();
+    if(!s) return render(items);
+    render(items.filter(x =>
+      (x.name + " " + (x.desc||"") + " " + (x.tag||"")).toLowerCase().includes(s)
+    ));
+  }
+  q.addEventListener('input', filter);
+  render(items);
+</script>
+</body>
+</html>

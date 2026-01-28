@@ -1,76 +1,447 @@
-const items = [
-  // ===== 国外：通用对话/写作 =====
-  {name:"ChatGPT", url:"https://chatgpt.com", desc:"通用对话/写作/代码", tag:"综合"},
-  {name:"Claude", url:"https://claude.ai", desc:"长文本/文档推理很强", tag:"综合"},
-  {name:"Gemini", url:"https://gemini.google.com", desc:"Google 系 AI 助手", tag:"综合"},
-  {name:"Microsoft Copilot", url:"https://copilot.microsoft.com", desc:"微软 Copilot 助手入口", tag:"综合"},
-  {name:"Perplexity", url:"https://www.perplexity.ai", desc:"带引用的搜索问答", tag:"搜索"},
-  {name:"Poe", url:"https://poe.com", desc:"多模型聚合入口", tag:"聚合"},
-  {name:"You.com", url:"https://you.com", desc:"AI 搜索与聊天", tag:"搜索"},
-  {name:"Phind", url:"https://www.phind.com", desc:"面向开发者的 AI 搜索", tag:"编程"},
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 导航</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --fg:#e8ecff;
+      --muted:rgba(232,236,255,.75);
+      --card:rgba(255,255,255,.05);
+      --card2:rgba(255,255,255,.08);
+      --border:rgba(255,255,255,.12);
+      --border2:rgba(255,255,255,.28);
+      --chip:rgba(255,255,255,.04);
+      --chipBorder:rgba(255,255,255,.14);
+      --accent:#4f7cff;
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb;
+      --fg:#101323;
+      --muted:rgba(16,19,35,.70);
+      --card:rgba(16,19,35,.05);
+      --card2:rgba(16,19,35,.08);
+      --border:rgba(16,19,35,.12);
+      --border2:rgba(16,19,35,.22);
+      --chip:rgba(16,19,35,.04);
+      --chipBorder:rgba(16,19,35,.14);
+      --accent:#2d5bff;
+    }
 
-  // ===== 国外：图像生成/设计 =====
-  {name:"Midjourney", url:"https://www.midjourney.com", desc:"图像生成（MJ）", tag:"图像"},
-  {name:"Leonardo AI", url:"https://leonardo.ai", desc:"图像生成/素材风格", tag:"图像"},
-  {name:"Ideogram", url:"https://ideogram.ai", desc:"文字排版图像很强", tag:"图像"},
-  {name:"Playground", url:"https://playground.com", desc:"图像生成与编辑", tag:"图像"},
-  {name:"Adobe Firefly", url:"https://firefly.adobe.com", desc:"Adobe 图像生成与填充", tag:"图像"},
-  {name:"Canva", url:"https://www.canva.com", desc:"设计 + AI", tag:"设计"},
-  {name:"Figma", url:"https://www.figma.com", desc:"协作设计工具（插件生态）", tag:"设计"},
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      margin:0; background:var(--bg); color:var(--fg);
+    }
+    header{padding:28px 18px 14px; max-width:1080px; margin:0 auto;}
+    h1{margin:0 0 8px; font-size:22px;}
+    .sub{color:var(--muted); font-size:13px; line-height:1.4}
+    .wrap{max-width:1080px; margin:0 auto; padding:0 18px 28px;}
+    .topbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:14px 0 12px;}
+    .search{flex:1; min-width:260px; display:flex; gap:10px;}
+    input{
+      flex:1; padding:12px 12px; border-radius:12px;
+      border:1px solid var(--border); background:var(--card); color:var(--fg);
+      outline:none;
+    }
+    input:focus{border-color:var(--border2); background:var(--card2);}
+
+    .btn{
+      padding:10px 12px; border-radius:12px;
+      border:1px solid var(--border); background:var(--card);
+      color:var(--fg); cursor:pointer; font-size:12px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .btn:hover{border-color:var(--border2); background:var(--card2);}
+    .btn.primary{border-color:var(--accent); background:rgba(79,124,255,.12);}
+    .btn.primary:hover{background:rgba(79,124,255,.18);}
+
+    .filters{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px;}
+    .chip{
+      padding:6px 12px; border-radius:999px;
+      border:1px solid var(--border); background:var(--chip);
+      color:var(--fg); font-size:12px; cursor:pointer;
+      user-select:none;
+    }
+    .chip.active{background:var(--accent); border-color:var(--accent); color:white;}
+
+    .meta{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:0 0 14px; color:var(--muted); font-size:12px;}
+    .meta b{color:var(--fg);}
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px;}
+    a.card{
+      display:block; padding:14px; border-radius:16px; text-decoration:none; color:inherit;
+      border:1px solid var(--border); background:var(--card);
+      position:relative;
+    }
+    a.card:hover{border-color:var(--border2); background:var(--card2);}
+    .name{font-weight:750; letter-spacing:.2px;}
+    .desc{color:var(--muted); font-size:12px; margin-top:6px; line-height:1.35; min-height:32px;}
+    .badges{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+    .badge{
+      display:inline-flex; gap:6px; align-items:center;
+      font-size:11px; color:var(--muted);
+      padding:4px 8px; border-radius:999px;
+      border:1px solid var(--chipBorder); background:var(--chip);
+    }
+    .star{
+      position:absolute; top:10px; right:10px;
+      width:34px; height:34px; border-radius:12px;
+      border:1px solid var(--border); background:var(--card);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; user-select:none;
+    }
+    .star:hover{border-color:var(--border2); background:var(--card2);}
+    .star.on{border-color:var(--accent); background:rgba(79,124,255,.15);}
+    .star span{font-size:16px; line-height:1;}
+
+    footer{color:var(--muted); font-size:12px; padding:16px 2px; line-height:1.6}
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background:rgba(0,0,0,.65); color:white;
+      padding:10px 12px; border-radius:999px; font-size:12px;
+      border:1px solid rgba(255,255,255,.18);
+      opacity:0; pointer-events:none; transition:opacity .18s ease;
+      max-width:90vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    [data-theme="light"] .toast{background:rgba(16,19,35,.85);}
+
+    .hint{margin-top:8px}
+    code.kbd{padding:2px 6px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--fg)}
+  </style>
+</head>
+
+<body data-theme="dark">
+  <header>
+    <h1>AI 导航</h1>
+    <div class="sub">
+      常用 AI 工具快捷入口（支持搜索、分类、国内/国外、大厂/开源、收藏、访问排序）<br/>
+      快捷键：按 <code class="kbd">/</code> 聚焦搜索，按 <code class="kbd">Esc</code> 清空。
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="search">
+        <input id="q" placeholder="搜索：比如 chat / 图片 / 编程 / 翻译 / 大厂 / 国内…" />
+      </div>
+
+      <button id="btnTheme" class="btn">🌓 主题</button>
+      <button id="btnOnlyStar" class="btn">⭐ 只看收藏：关</button>
+      <button id="btnSort" class="btn primary">⇅ 排序：默认</button>
+    </div>
+
+    <div id="filters" class="filters"></div>
+
+    <div class="meta">
+      当前筛选：<b id="metaFilter">全部</b>　
+      结果：<b id="metaCount">0</b>　
+      提示：点击 ⭐ 收藏；右键卡片可复制链接。
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <footer>
+      说明：收藏/访问次数保存在本地浏览器（localStorage），不会上传到任何服务器。<br/>
+      你可以继续往数据里加站点：只要按同样字段新增一行即可（name/url/desc/tag/region/company）。<br/>
+      <div class="hint">建议：把此页面加入书签栏或设为首页。</div>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+/**
+ * 数据结构：
+ * name: 显示名
+ * url: 链接
+ * desc: 简述
+ * tag: 分类（综合/国内/图像/视频/编程/API/导航/办公/音频/研究/翻译/设计/开源...）
+ * region: 国内 / 国外
+ * company: OpenAI / Google / Microsoft / 阿里 / 百度 / 字节 / 腾讯 / 讯飞 / 智谱 / 开源 等
+ */
+const items = [
+  // ===== 国外：通用/搜索 =====
+  {name:"ChatGPT", url:"https://chatgpt.com", desc:"通用对话/写作/代码", tag:"综合", region:"国外", company:"OpenAI"},
+  {name:"Claude", url:"https://claude.ai", desc:"长文本/文档推理很强", tag:"综合", region:"国外", company:"Anthropic"},
+  {name:"Gemini", url:"https://gemini.google.com", desc:"Google 系 AI 助手", tag:"综合", region:"国外", company:"Google"},
+  {name:"Microsoft Copilot", url:"https://copilot.microsoft.com", desc:"微软 Copilot 助手入口", tag:"综合", region:"国外", company:"Microsoft"},
+  {name:"Perplexity", url:"https://www.perplexity.ai", desc:"带引用的搜索问答", tag:"搜索", region:"国外", company:"Perplexity"},
+  {name:"You.com", url:"https://you.com", desc:"AI 搜索与聊天", tag:"搜索", region:"国外", company:"You"},
+  {name:"Phind", url:"https://www.phind.com", desc:"面向开发者的 AI 搜索", tag:"编程", region:"国外", company:"Phind"},
+  {name:"Poe", url:"https://poe.com", desc:"多模型聚合入口", tag:"聚合", region:"国外", company:"Quora"},
+
+  // ===== 国外：图像/设计 =====
+  {name:"Midjourney", url:"https://www.midjourney.com", desc:"图像生成（MJ）", tag:"图像", region:"国外", company:"Midjourney"},
+  {name:"Leonardo AI", url:"https://leonardo.ai", desc:"图像生成/素材风格", tag:"图像", region:"国外", company:"Leonardo"},
+  {name:"Ideogram", url:"https://ideogram.ai", desc:"文字排版图像很强", tag:"图像", region:"国外", company:"Ideogram"},
+  {name:"Playground", url:"https://playground.com", desc:"图像生成与编辑", tag:"图像", region:"国外", company:"Playground"},
+  {name:"Adobe Firefly", url:"https://firefly.adobe.com", desc:"生成式填充/图像创作", tag:"图像", region:"国外", company:"Adobe"},
+  {name:"Canva", url:"https://www.canva.com", desc:"设计 + AI", tag:"设计", region:"国外", company:"Canva"},
+  {name:"Figma", url:"https://www.figma.com", desc:"协作设计（插件生态）", tag:"设计", region:"国外", company:"Figma"},
 
   // ===== 国外：视频/音频 =====
-  {name:"Runway", url:"https://runwayml.com", desc:"视频生成/视频编辑", tag:"视频"},
-  {name:"Pika", url:"https://pika.art", desc:"视频生成", tag:"视频"},
-  {name:"Luma", url:"https://lumalabs.ai", desc:"视频/3D/生成", tag:"视频"},
-  {name:"ElevenLabs", url:"https://elevenlabs.io", desc:"语音合成/配音", tag:"音频"},
-  {name:"Suno", url:"https://suno.com", desc:"AI 作曲/歌曲生成", tag:"音频"},
+  {name:"Runway", url:"https://runwayml.com", desc:"视频生成/视频编辑", tag:"视频", region:"国外", company:"Runway"},
+  {name:"Pika", url:"https://pika.art", desc:"视频生成", tag:"视频", region:"国外", company:"Pika"},
+  {name:"Luma", url:"https://lumalabs.ai", desc:"视频/3D/生成", tag:"视频", region:"国外", company:"Luma"},
+  {name:"ElevenLabs", url:"https://elevenlabs.io", desc:"语音合成/配音", tag:"音频", region:"国外", company:"ElevenLabs"},
+  {name:"Suno", url:"https://suno.com", desc:"AI 作曲/歌曲生成", tag:"音频", region:"国外", company:"Suno"},
 
-  // ===== 开发/模型/开源生态 =====
-  {name:"Hugging Face", url:"https://huggingface.co", desc:"模型/数据集/Spaces", tag:"开发"},
-  {name:"Replicate", url:"https://replicate.com", desc:"在线运行开源模型", tag:"开发"},
-  {name:"Kaggle", url:"https://www.kaggle.com", desc:"数据科学与 Notebook", tag:"开发"},
-  {name:"Papers with Code", url:"https://paperswithcode.com", desc:"论文 + 代码索引", tag:"研究"},
+  // ===== 开发/开源/研究 =====
+  {name:"Hugging Face", url:"https://huggingface.co", desc:"模型/数据集/Spaces", tag:"开发", region:"国外", company:"开源"},
+  {name:"Replicate", url:"https://replicate.com", desc:"在线运行开源模型", tag:"开发", region:"国外", company:"Replicate"},
+  {name:"Kaggle", url:"https://www.kaggle.com", desc:"数据科学与 Notebook", tag:"开发", region:"国外", company:"Google"},
+  {name:"Papers with Code", url:"https://paperswithcode.com", desc:"论文 + 代码索引", tag:"研究", region:"国外", company:"Meta"},
 
-  // ===== API/多模型聚合 =====
-  {name:"OpenRouter", url:"https://openrouter.ai", desc:"多模型 API 聚合", tag:"API"},
-  {name:"Together AI", url:"https://www.together.ai", desc:"开源模型推理/训练", tag:"API"},
-  {name:"Groq", url:"https://groq.com", desc:"超快推理（部分模型）", tag:"API"},
+  // ===== API/多模型 =====
+  {name:"OpenRouter", url:"https://openrouter.ai", desc:"多模型 API 聚合", tag:"API", region:"国外", company:"OpenRouter"},
+  {name:"Together AI", url:"https://www.together.ai", desc:"开源模型推理/训练", tag:"API", region:"国外", company:"Together"},
+  {name:"Groq", url:"https://groq.com", desc:"超快推理（部分模型）", tag:"API", region:"国外", company:"Groq"},
 
-  // ===== 提示词/工作流/自动化 =====
-  {name:"FlowGPT", url:"https://flowgpt.com", desc:"提示词社区", tag:"提示词"},
-  {name:"PromptHero", url:"https://prompthero.com", desc:"提示词与作品库", tag:"提示词"},
-  {name:"LangChain", url:"https://www.langchain.com", desc:"LLM 应用开发框架", tag:"开发"},
-  {name:"LangSmith", url:"https://smith.langchain.com", desc:"LLM 调试/评测/追踪", tag:"开发"},
-  {name:"Zapier", url:"https://zapier.com", desc:"自动化工作流", tag:"办公"},
-  {name:"n8n", url:"https://n8n.io", desc:"可自建的自动化工作流", tag:"办公"},
+  // ===== 工作流/提示词/自动化 =====
+  {name:"FlowGPT", url:"https://flowgpt.com", desc:"提示词社区", tag:"提示词", region:"国外", company:"社区"},
+  {name:"PromptHero", url:"https://prompthero.com", desc:"提示词与作品库", tag:"提示词", region:"国外", company:"社区"},
+  {name:"Zapier", url:"https://zapier.com", desc:"自动化工作流", tag:"办公", region:"国外", company:"Zapier"},
+  {name:"n8n", url:"https://n8n.io", desc:"可自建自动化工作流", tag:"办公", region:"国外", company:"开源"},
 
-  // ===== 国内：大厂/主流助手 =====
-  {name:"通义千问", url:"https://tongyi.aliyun.com", desc:"阿里通义千问助手", tag:"国内"},
-  {name:"文心一言", url:"https://yiyan.baidu.com", desc:"百度文心一言", tag:"国内"},
-  {name:"Kimi", url:"https://kimi.moonshot.cn", desc:"长文本/文件阅读强", tag:"国内"},
-  {name:"智谱清言", url:"https://chatglm.cn", desc:"智谱 ChatGLM 官方入口", tag:"国内"},
-  {name:"腾讯元宝", url:"https://yuanbao.tencent.com", desc:"腾讯 AI 助手入口（如可用）", tag:"国内"},
-  {name:"讯飞星火", url:"https://xinghuo.xfyun.cn", desc:"科大讯飞星火", tag:"国内"},
-  {name:"商汤商量", url:"https://chat.sensetime.com", desc:"商汤对话助手（如可用）", tag:"国内"},
-  {name:"360 智脑", url:"https://ai.360.com", desc:"360 AI 助手", tag:"国内"},
+  // ===== 国内：大厂助手 =====
+  {name:"通义千问", url:"https://tongyi.aliyun.com", desc:"阿里通义千问助手", tag:"国内", region:"国内", company:"阿里"},
+  {name:"文心一言", url:"https://yiyan.baidu.com", desc:"百度文心一言", tag:"国内", region:"国内", company:"百度"},
+  {name:"Kimi", url:"https://kimi.moonshot.cn", desc:"长文本/文件阅读强", tag:"国内", region:"国内", company:"月之暗面"},
+  {name:"智谱清言", url:"https://chatglm.cn", desc:"智谱 ChatGLM 官方入口", tag:"国内", region:"国内", company:"智谱"},
+  {name:"讯飞星火", url:"https://xinghuo.xfyun.cn", desc:"科大讯飞星火", tag:"国内", region:"国内", company:"讯飞"},
+  {name:"360 智脑", url:"https://ai.360.com", desc:"360 AI 助手", tag:"国内", region:"国内", company:"360"},
+  {name:"火山引擎", url:"https://www.volcengine.com", desc:"字节云产品入口（含 AI）", tag:"国内", region:"国内", company:"字节"},
 
-  // ===== 国内：开发平台/大模型开放 =====
-  {name:"阿里云百炼", url:"https://bailian.console.aliyun.com", desc:"阿里云模型与应用平台", tag:"国内"},
-  {name:"百度智能云千帆", url:"https://qianfan.cloud.baidu.com", desc:"百度千帆大模型平台", tag:"国内"},
-  {name:"火山方舟", url:"https://www.volcengine.com/product/ark", desc:"字节火山方舟（模型/应用）", tag:"国内"},
-  {name:"腾讯云大模型", url:"https://cloud.tencent.com/product/tbp", desc:"腾讯云模型平台（如页面变动以实际为准）", tag:"国内"},
-  {name:"智谱开放平台", url:"https://open.bigmodel.cn", desc:"智谱 API/控制台", tag:"国内"},
+  // ===== 国内：大模型开放平台 =====
+  {name:"阿里云百炼", url:"https://bailian.console.aliyun.com", desc:"模型与应用平台", tag:"API", region:"国内", company:"阿里"},
+  {name:"百度千帆", url:"https://qianfan.cloud.baidu.com", desc:"大模型平台", tag:"API", region:"国内", company:"百度"},
+  {name:"火山方舟", url:"https://www.volcengine.com/product/ark", desc:"模型/应用平台", tag:"API", region:"国内", company:"字节"},
+  {name:"智谱开放平台", url:"https://open.bigmodel.cn", desc:"API/控制台", tag:"API", region:"国内", company:"智谱"},
 
-  // ===== 国内：AI 导航/聚合站（你要的“导航大厂”）=====
-  {name:"Futurepedia", url:"https://www.futurepedia.io", desc:"国外 AI 工具导航库", tag:"导航"},
-  {name:"There’s An AI For That", url:"https://theresanaiforthat.com", desc:"国外 AI 工具导航", tag:"导航"},
-  {name:"Product Hunt", url:"https://www.producthunt.com", desc:"新产品/AI 工具发现", tag:"导航"},
-  {name:"少数派 Matrix", url:"https://sspai.com", desc:"工具与效率资讯（可搜 AI）", tag:"导航"},
-  {name:"即刻", url:"https://okjk.co", desc:"国内工具/AI 讨论（需登录）", tag:"导航"},
+  // ===== AI 导航/工具发现 =====
+  {name:"Futurepedia", url:"https://www.futurepedia.io", desc:"国外 AI 工具导航库", tag:"导航", region:"国外", company:"导航"},
+  {name:"There’s An AI For That", url:"https://theresanaiforthat.com", desc:"国外 AI 工具导航", tag:"导航", region:"国外", company:"导航"},
+  {name:"Product Hunt", url:"https://www.producthunt.com", desc:"新产品/AI 工具发现", tag:"导航", region:"国外", company:"导航"},
 
-  // ===== 常用辅助：翻译/写作/文档 =====
-  {name:"DeepL", url:"https://www.deepl.com/translator", desc:"高质量翻译", tag:"翻译"},
-  {name:"Notion", url:"https://www.notion.so", desc:"知识库/文档 + AI", tag:"办公"},
-  {name:"Google Docs", url:"https://docs.google.com", desc:"在线文档", tag:"办公"},
-  {name:"Overleaf", url:"https://www.overleaf.com", desc:"LaTeX 写论文", tag:"研究"},
+  // ===== 翻译/办公 =====
+  {name:"DeepL", url:"https://www.deepl.com/translator", desc:"高质量翻译", tag:"翻译", region:"国外", company:"DeepL"},
+  {name:"Notion", url:"https://www.notion.so", desc:"知识库/文档 + AI", tag:"办公", region:"国外", company:"Notion"},
+  {name:"Google Docs", url:"https://docs.google.com", desc:"在线文档", tag:"办公", region:"国外", company:"Google"},
+  {name:"Overleaf", url:"https://www.overleaf.com", desc:"LaTeX 写论文", tag:"研究", region:"国外", company:"Overleaf"},
 ];
+
+// ====== 本地状态（收藏/访问次数/主题） ======
+const LS_STAR = "ai_nav_star_v1";
+const LS_HITS = "ai_nav_hits_v1";
+const LS_THEME = "ai_nav_theme_v1";
+
+const starSet = new Set(JSON.parse(localStorage.getItem(LS_STAR) || "[]"));
+const hits = JSON.parse(localStorage.getItem(LS_HITS) || "{}");
+
+function keyOf(x){ return (x.url || x.name).trim(); }
+
+// ====== UI 元素 ======
+const grid = document.getElementById('grid');
+const q = document.getElementById('q');
+const filtersEl = document.getElementById('filters');
+const btnTheme = document.getElementById('btnTheme');
+const btnOnlyStar = document.getElementById('btnOnlyStar');
+const btnSort = document.getElementById('btnSort');
+const metaFilter = document.getElementById('metaFilter');
+const metaCount = document.getElementById('metaCount');
+const toast = document.getElementById('toast');
+
+let currentFilter = "全部";
+let onlyStar = false;
+let sortMode = "default"; // default | hits | alpha
+
+// ====== 过滤器集合：tag / region / company ======
+function buildFilters(){
+  const tags = [...new Set(items.map(i=>i.tag))].sort();
+  const regions = [...new Set(items.map(i=>i.region))].sort();
+  const companies = [...new Set(items.map(i=>i.company))].sort();
+
+  // 你要的：都要 —— 默认给一组常用入口，再加“国内/国外/大厂/开源”
+  const preset = [
+    "全部",
+    "综合","搜索","图像","视频","音频","编程","开发","API","办公","提示词","导航","研究","翻译","设计",
+    "国内","国外",
+    "OpenAI","Google","Microsoft","阿里","百度","字节","腾讯","讯飞","智谱","开源"
+  ];
+
+  const all = [...new Set([
+    ...preset,
+    ...tags,
+    ...regions,
+    ...companies
+  ])].filter(Boolean);
+
+  return all;
+}
+
+const filters = buildFilters();
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.style.opacity = "1";
+  clearTimeout(showToast.t);
+  showToast.t = setTimeout(()=> toast.style.opacity="0", 1200);
+}
+
+function setTheme(theme){
+  document.body.setAttribute("data-theme", theme);
+  localStorage.setItem(LS_THEME, theme);
+  btnTheme.textContent = theme === "light" ? "🌙 主题" : "🌓 主题";
+}
+
+function toggleTheme(){
+  const now = document.body.getAttribute("data-theme") || "dark";
+  setTheme(now === "dark" ? "light" : "dark");
+}
+
+// ====== 渲染 ======
+function renderFilters(){
+  filtersEl.innerHTML = filters.map(f => `
+    <div class="chip ${f===currentFilter?'active':''}" data-f="${f}">${f}</div>
+  `).join('');
+
+  filtersEl.querySelectorAll('.chip').forEach(el=>{
+    el.onclick = ()=>{
+      currentFilter = el.dataset.f;
+      renderFilters();
+      apply();
+    };
+  });
+}
+
+function matchFilter(x, f){
+  if(f==="全部") return true;
+  // 既支持 tag，也支持 region，也支持 company
+  return x.tag===f || x.region===f || x.company===f;
+}
+
+function getList(){
+  const s = (q.value || "").toLowerCase().trim();
+  let list = items.filter(x=>{
+    const hay = `${x.name} ${x.desc||""} ${x.tag||""} ${x.region||""} ${x.company||""}`.toLowerCase();
+    const hitSearch = !s || hay.includes(s);
+    const hitFilter = matchFilter(x, currentFilter);
+    const hitStar = !onlyStar || starSet.has(keyOf(x));
+    return hitSearch && hitFilter && hitStar;
+  });
+
+  if(sortMode==="hits"){
+    list.sort((a,b)=>(hits[keyOf(b)]||0)-(hits[keyOf(a)]||0));
+  }else if(sortMode==="alpha"){
+    list.sort((a,b)=>a.name.localeCompare(b.name,'zh-Hans-CN'));
+  }
+  return list;
+}
+
+function cardHtml(x){
+  const k = keyOf(x);
+  const isStar = starSet.has(k);
+  const h = hits[k] || 0;
+
+  return `
+    <a class="card" href="${x.url}" target="_blank" rel="noreferrer" data-k="${encodeURIComponent(k)}">
+      <div class="star ${isStar?'on':''}" title="收藏/取消收藏" data-star="${encodeURIComponent(k)}">
+        <span>${isStar ? "★" : "☆"}</span>
+      </div>
+      <div class="name">${x.name}</div>
+      <div class="desc">${x.desc || ""}</div>
+      <div class="badges">
+        <span class="badge">🏷 ${x.tag || "工具"}</span>
+        <span class="badge">🌍 ${x.region || "-"}</span>
+        <span class="badge">🏢 ${x.company || "-"}</span>
+        <span class="badge">👁 ${h}</span>
+      </div>
+    </a>
+  `;
+}
+
+function render(list){
+  grid.innerHTML = list.map(cardHtml).join('');
+  metaFilter.textContent = currentFilter + (onlyStar ? " + 收藏" : "");
+  metaCount.textContent = String(list.length);
+
+  // 绑定收藏按钮（阻止跳转）
+  grid.querySelectorAll('[data-star]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const k = decodeURIComponent(el.dataset.star);
+      if(starSet.has(k)){ starSet.delete(k); showToast("已取消收藏"); }
+      else{ starSet.add(k); showToast("已收藏"); }
+      localStorage.setItem(LS_STAR, JSON.stringify([...starSet]));
+      apply(false);
+    });
+  });
+
+  // 统计点击（访问次数）
+  grid.querySelectorAll('a.card').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      const k = decodeURIComponent(a.dataset.k);
+      hits[k] = (hits[k] || 0) + 1;
+      localStorage.setItem(LS_HITS, JSON.stringify(hits));
+    });
+    // 右键复制链接
+    a.addEventListener('contextmenu', async (e)=>{
+      e.preventDefault();
+      try{
+        await navigator.clipboard.writeText(a.href);
+        showToast("已复制链接");
+      }catch{
+        showToast("复制失败（请手动复制）");
+      }
+    });
+  });
+}
+
+function apply(scrollTop=true){
+  const list = getList();
+  render(list);
+  if(scrollTop) window.scrollTo({top:0, behavior:"smooth"});
+}
+
+// ====== 按钮行为 ======
+btnTheme.onclick = toggleTheme;
+
+btnOnlyStar.onclick = ()=>{
+  onlyStar = !onlyStar;
+  btnOnlyStar.textContent = onlyStar ? "⭐ 只看收藏：开" : "⭐ 只看收藏：关";
+  apply();
+};
+
+btnSort.onclick = ()=>{
+  if(sortMode==="default"){ sortMode="hits"; btnSort.textContent="⇅ 排序：按访问"; showToast("按访问次数排序"); }
+  else if(sortMode==="hits"){ sortMode="alpha"; btnSort.textContent="⇅ 排序：按字母"; showToast("按字母排序"); }
+  else { sortMode="default"; btnSort.textContent="⇅ 排序：默认"; showToast("默认排序"); }
+  apply();
+};
+
+// 快捷键：/ 聚焦搜索，Esc 清空
+window.addEventListener('keydown', (e)=>{
+  if(e.key==="/" && document.activeElement !== q){
+    e.preventDefault();
+    q.focus();
+  }
+  if(e.key==="Escape"){
+    if(document.activeElement === q) q.blur();
+    q.value = "";
+    apply();
+  }
+});
+
+q.addEventListener('input', ()=>apply(false));
+
+// ====== 初始化 ======
+const savedTheme = localStorage.getItem(LS_THEME) || "dark";
+setTheme(savedTheme);
+renderFilters();
+apply(false);
+</script>
+</body>
+</html>

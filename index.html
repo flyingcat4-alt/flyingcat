@@ -1,77 +1,76 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI 导航</title>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; background:#0b1020; color:#e8ecff;}
-    header{padding:28px 18px; max-width:980px; margin:0 auto;}
-    h1{margin:0 0 8px; font-size:22px;}
-    .sub{opacity:.8; font-size:13px}
-    .wrap{max-width:980px; margin:0 auto; padding:0 18px 28px;}
-    .search{display:flex; gap:10px; margin:14px 0 18px;}
-    input{flex:1; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#e8ecff;}
-    .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
-    a.card{display:block; padding:14px; border-radius:16px; text-decoration:none; color:inherit;
-      border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05);}
-    a.card:hover{border-color:rgba(255,255,255,.28); background:rgba(255,255,255,.08);}
-    .name{font-weight:650;}
-    .desc{opacity:.8; font-size:12px; margin-top:6px; line-height:1.35;}
-    .tag{display:inline-block; font-size:11px; opacity:.85; margin-top:10px; padding:4px 8px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04);}
-    footer{opacity:.65; font-size:12px; padding:18px;}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AI 导航</h1>
-    <div class="sub">常用 AI 工具快捷入口（支持搜索过滤）</div>
-  </header>
+const items = [
+  // ===== 国外：通用对话/写作 =====
+  {name:"ChatGPT", url:"https://chatgpt.com", desc:"通用对话/写作/代码", tag:"综合"},
+  {name:"Claude", url:"https://claude.ai", desc:"长文本/文档推理很强", tag:"综合"},
+  {name:"Gemini", url:"https://gemini.google.com", desc:"Google 系 AI 助手", tag:"综合"},
+  {name:"Microsoft Copilot", url:"https://copilot.microsoft.com", desc:"微软 Copilot 助手入口", tag:"综合"},
+  {name:"Perplexity", url:"https://www.perplexity.ai", desc:"带引用的搜索问答", tag:"搜索"},
+  {name:"Poe", url:"https://poe.com", desc:"多模型聚合入口", tag:"聚合"},
+  {name:"You.com", url:"https://you.com", desc:"AI 搜索与聊天", tag:"搜索"},
+  {name:"Phind", url:"https://www.phind.com", desc:"面向开发者的 AI 搜索", tag:"编程"},
 
-  <div class="wrap">
-    <div class="search">
-      <input id="q" placeholder="搜索：比如 chat / 图片 / 编程 / 翻译…" />
-    </div>
+  // ===== 国外：图像生成/设计 =====
+  {name:"Midjourney", url:"https://www.midjourney.com", desc:"图像生成（MJ）", tag:"图像"},
+  {name:"Leonardo AI", url:"https://leonardo.ai", desc:"图像生成/素材风格", tag:"图像"},
+  {name:"Ideogram", url:"https://ideogram.ai", desc:"文字排版图像很强", tag:"图像"},
+  {name:"Playground", url:"https://playground.com", desc:"图像生成与编辑", tag:"图像"},
+  {name:"Adobe Firefly", url:"https://firefly.adobe.com", desc:"Adobe 图像生成与填充", tag:"图像"},
+  {name:"Canva", url:"https://www.canva.com", desc:"设计 + AI", tag:"设计"},
+  {name:"Figma", url:"https://www.figma.com", desc:"协作设计工具（插件生态）", tag:"设计"},
 
-    <div id="grid" class="grid"></div>
-    <footer>提示：把这个页面加入浏览器书签 / 设为首页更方便。</footer>
-  </div>
+  // ===== 国外：视频/音频 =====
+  {name:"Runway", url:"https://runwayml.com", desc:"视频生成/视频编辑", tag:"视频"},
+  {name:"Pika", url:"https://pika.art", desc:"视频生成", tag:"视频"},
+  {name:"Luma", url:"https://lumalabs.ai", desc:"视频/3D/生成", tag:"视频"},
+  {name:"ElevenLabs", url:"https://elevenlabs.io", desc:"语音合成/配音", tag:"音频"},
+  {name:"Suno", url:"https://suno.com", desc:"AI 作曲/歌曲生成", tag:"音频"},
 
-<script>
-  const items = [
-    {name:"ChatGPT", url:"https://chatgpt.com", desc:"通用对话/写作/代码", tag:"综合"},
-    {name:"Claude", url:"https://claude.ai", desc:"长文本/文档推理很强", tag:"综合"},
-    {name:"Gemini", url:"https://gemini.google.com", desc:"Google 系 AI 助手", tag:"综合"},
-    {name:"Perplexity", url:"https://www.perplexity.ai", desc:"带引用的搜索问答", tag:"搜索"},
-    {name:"Poe", url:"https://poe.com", desc:"多模型聚合入口", tag:"聚合"},
-    {name:"Midjourney", url:"https://www.midjourney.com", desc:"图像生成", tag:"图像"},
-    {name:"Stable Diffusion Web", url:"https://stability.ai", desc:"图像生成生态", tag:"图像"},
-    {name:"Hugging Face", url:"https://huggingface.co", desc:"模型/数据集/Spaces", tag:"开发"},
-    {name:"OpenRouter", url:"https://openrouter.ai", desc:"多模型 API 聚合", tag:"API"},
-  ];
+  // ===== 开发/模型/开源生态 =====
+  {name:"Hugging Face", url:"https://huggingface.co", desc:"模型/数据集/Spaces", tag:"开发"},
+  {name:"Replicate", url:"https://replicate.com", desc:"在线运行开源模型", tag:"开发"},
+  {name:"Kaggle", url:"https://www.kaggle.com", desc:"数据科学与 Notebook", tag:"开发"},
+  {name:"Papers with Code", url:"https://paperswithcode.com", desc:"论文 + 代码索引", tag:"研究"},
 
-  const grid = document.getElementById('grid');
-  const q = document.getElementById('q');
+  // ===== API/多模型聚合 =====
+  {name:"OpenRouter", url:"https://openrouter.ai", desc:"多模型 API 聚合", tag:"API"},
+  {name:"Together AI", url:"https://www.together.ai", desc:"开源模型推理/训练", tag:"API"},
+  {name:"Groq", url:"https://groq.com", desc:"超快推理（部分模型）", tag:"API"},
 
-  function render(list){
-    grid.innerHTML = list.map(x => `
-      <a class="card" href="${x.url}" target="_blank" rel="noreferrer">
-        <div class="name">${x.name}</div>
-        <div class="desc">${x.desc || ""}</div>
-        <div class="tag">${x.tag || "工具"}</div>
-      </a>
-    `).join('');
-  }
-  function filter(){
-    const s = (q.value || "").toLowerCase().trim();
-    if(!s) return render(items);
-    render(items.filter(x =>
-      (x.name + " " + (x.desc||"") + " " + (x.tag||"")).toLowerCase().includes(s)
-    ));
-  }
-  q.addEventListener('input', filter);
-  render(items);
-</script>
-</body>
-</html>
+  // ===== 提示词/工作流/自动化 =====
+  {name:"FlowGPT", url:"https://flowgpt.com", desc:"提示词社区", tag:"提示词"},
+  {name:"PromptHero", url:"https://prompthero.com", desc:"提示词与作品库", tag:"提示词"},
+  {name:"LangChain", url:"https://www.langchain.com", desc:"LLM 应用开发框架", tag:"开发"},
+  {name:"LangSmith", url:"https://smith.langchain.com", desc:"LLM 调试/评测/追踪", tag:"开发"},
+  {name:"Zapier", url:"https://zapier.com", desc:"自动化工作流", tag:"办公"},
+  {name:"n8n", url:"https://n8n.io", desc:"可自建的自动化工作流", tag:"办公"},
+
+  // ===== 国内：大厂/主流助手 =====
+  {name:"通义千问", url:"https://tongyi.aliyun.com", desc:"阿里通义千问助手", tag:"国内"},
+  {name:"文心一言", url:"https://yiyan.baidu.com", desc:"百度文心一言", tag:"国内"},
+  {name:"Kimi", url:"https://kimi.moonshot.cn", desc:"长文本/文件阅读强", tag:"国内"},
+  {name:"智谱清言", url:"https://chatglm.cn", desc:"智谱 ChatGLM 官方入口", tag:"国内"},
+  {name:"腾讯元宝", url:"https://yuanbao.tencent.com", desc:"腾讯 AI 助手入口（如可用）", tag:"国内"},
+  {name:"讯飞星火", url:"https://xinghuo.xfyun.cn", desc:"科大讯飞星火", tag:"国内"},
+  {name:"商汤商量", url:"https://chat.sensetime.com", desc:"商汤对话助手（如可用）", tag:"国内"},
+  {name:"360 智脑", url:"https://ai.360.com", desc:"360 AI 助手", tag:"国内"},
+
+  // ===== 国内：开发平台/大模型开放 =====
+  {name:"阿里云百炼", url:"https://bailian.console.aliyun.com", desc:"阿里云模型与应用平台", tag:"国内"},
+  {name:"百度智能云千帆", url:"https://qianfan.cloud.baidu.com", desc:"百度千帆大模型平台", tag:"国内"},
+  {name:"火山方舟", url:"https://www.volcengine.com/product/ark", desc:"字节火山方舟（模型/应用）", tag:"国内"},
+  {name:"腾讯云大模型", url:"https://cloud.tencent.com/product/tbp", desc:"腾讯云模型平台（如页面变动以实际为准）", tag:"国内"},
+  {name:"智谱开放平台", url:"https://open.bigmodel.cn", desc:"智谱 API/控制台", tag:"国内"},
+
+  // ===== 国内：AI 导航/聚合站（你要的“导航大厂”）=====
+  {name:"Futurepedia", url:"https://www.futurepedia.io", desc:"国外 AI 工具导航库", tag:"导航"},
+  {name:"There’s An AI For That", url:"https://theresanaiforthat.com", desc:"国外 AI 工具导航", tag:"导航"},
+  {name:"Product Hunt", url:"https://www.producthunt.com", desc:"新产品/AI 工具发现", tag:"导航"},
+  {name:"少数派 Matrix", url:"https://sspai.com", desc:"工具与效率资讯（可搜 AI）", tag:"导航"},
+  {name:"即刻", url:"https://okjk.co", desc:"国内工具/AI 讨论（需登录）", tag:"导航"},
+
+  // ===== 常用辅助：翻译/写作/文档 =====
+  {name:"DeepL", url:"https://www.deepl.com/translator", desc:"高质量翻译", tag:"翻译"},
+  {name:"Notion", url:"https://www.notion.so", desc:"知识库/文档 + AI", tag:"办公"},
+  {name:"Google Docs", url:"https://docs.google.com", desc:"在线文档", tag:"办公"},
+  {name:"Overleaf", url:"https://www.overleaf.com", desc:"LaTeX 写论文", tag:"研究"},
+];
